@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/SOMBIT4/students-api-using-GO/internal/config"
+	"github.com/SOMBIT4/students-api-using-GO/internal/http/handlers"
 )
 
 
@@ -24,11 +25,9 @@ func main() {
    
       // setup router 
      router := http.NewServeMux()
+ 
 
-
-     router.HandleFunc("GET /",func(w http.ResponseWriter, r *http.Request) {
-            w.Write([]byte("Welcome to Students API"))
-     })
+     router.HandleFunc("POST /api/students",student.New())
       // setup server
    server :=http.Server{
       Addr: cfg.Addr,
