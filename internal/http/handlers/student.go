@@ -8,12 +8,13 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/SOMBIT4/students-api-using-GO/internal/storage"
 	"github.com/SOMBIT4/students-api-using-GO/internal/types"
 	"github.com/SOMBIT4/students-api-using-GO/internal/utils/response"
 	"github.com/go-playground/validator/v10"
 )
 
-func New() http.HandlerFunc {
+func New(storage storage.Storage) http.HandlerFunc {
 	   // This function returns a handler that responds with a welcome message.
    return func(w http.ResponseWriter, r *http.Request) {
      slog.Info("creating new student handler")
@@ -39,6 +40,17 @@ func New() http.HandlerFunc {
 		return
 	}
 
-	  response.WriteJson(w, http.StatusCreated, map[string]string{"success": "Student created successfully"})
+	lastid, err:= storage.CreateStudent(
+		student.Name,
+		student.Email,
+		student.Age,
+	)
+  slog.Info("user created successfullly",slog.String("userId",fmt.Sprint(lastid)))
+	if err != nil {	
+		response.WriteJson(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	  response.WriteJson(w, http.StatusCreated, map[string]int64{"id":lastid})
    }
 }

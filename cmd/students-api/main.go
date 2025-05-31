@@ -13,6 +13,8 @@ import (
 
 	"github.com/SOMBIT4/students-api-using-GO/internal/config"
 	"github.com/SOMBIT4/students-api-using-GO/internal/http/handlers"
+	
+	"github.com/SOMBIT4/students-api-using-GO/internal/storage/sqlite"
 )
 
 
@@ -23,11 +25,18 @@ func main() {
 
       //database setup 
    
+      storage, err:= sqlite.New(cfg)
+
+      if err != nil {
+         log.Fatal(err)
+      }
+
+      slog.Info(("Storage initialized successfully"), slog.String("env",cfg.Env),slog.String("version","1.0.0"))
       // setup router 
      router := http.NewServeMux()
  
 
-     router.HandleFunc("POST /api/students",student.New())
+     router.HandleFunc("POST /api/students",student.New(storage))
       // setup server
    server :=http.Server{
       Addr: cfg.Addr,
@@ -54,7 +63,7 @@ func main() {
    defer cancel()
    
 
-   err:= server.Shutdown(ctx)
+   err= server.Shutdown(ctx)
 
    if err != nil {
       slog.Error("Failed to shutdown server gracefully", slog.String("error", err.Error()))
