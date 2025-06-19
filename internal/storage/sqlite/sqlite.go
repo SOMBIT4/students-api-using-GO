@@ -2,10 +2,11 @@ package sqlite
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/SOMBIT4/students-api-using-GO/internal/config"
+	"github.com/SOMBIT4/students-api-using-GO/internal/types"
 	_ "github.com/mattn/go-sqlite3" // Import the SQLite driver
-
 )
 
 
@@ -51,4 +52,24 @@ func (s *Sqlite)CreateStudent(name string, email string , age int) (int64, error
 		return 0, err
 	}
 	return lastid, nil
+}
+
+func (s *Sqlite) GetStudentById(id int64) (types.Student, error) {
+    stmt,err := s.Db.Prepare("SELECT * FROM students WHERE id = ? LIMIT 1")
+	if err != nil {
+		return types.Student{}, err
+	}
+    defer stmt.Close()
+
+	var student types.Student
+	err = stmt.QueryRow(id).Scan(&student.ID, &student.Name, &student.Email, &student.Age)
+	if err != nil {
+
+	   if err == sql.ErrNoRows {
+			return types.Student{}, fmt.Errorf("student with id %s not found", fmt.Sprint(id))
+		}
+      return types.Student{}, fmt.Errorf("query error: %w", err)
+	}
+
+	return student, nil
 }

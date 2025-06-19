@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/SOMBIT4/students-api-using-GO/internal/storage"
 	"github.com/SOMBIT4/students-api-using-GO/internal/types"
@@ -53,4 +54,27 @@ func New(storage storage.Storage) http.HandlerFunc {
 
 	  response.WriteJson(w, http.StatusCreated, map[string]int64{"id":lastid})
    }
+}
+
+func GetbyId(storage storage.Storage) http.HandlerFunc {
+	// This function returns a handler that responds with a welcome message.
+	return func(w http.ResponseWriter, r *http.Request) {
+		id:= r.PathValue("id")
+		slog.Info("getting student by id handler",slog.String("method", r.Method), slog.String("id",id))
+
+
+		intId, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
+			return
+		}
+		student, err := storage.GetStudentById(intId)
+		if err != nil {
+			slog.Error("failed to get student by id", slog.String("id", id))
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(err))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, student)
+	}
 }
